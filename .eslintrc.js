@@ -21,6 +21,8 @@ module.exports = {
   ],
   // add your custom rules here
   rules: {
+    // 自定义设置函数名与()之间没有空格
+    'space-before-function-paren': ['error', 'never'],
     // allow async-await
     'generator-star-spacing': 'off',
     // allow debugger during development
