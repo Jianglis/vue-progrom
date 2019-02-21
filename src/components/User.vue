@@ -32,7 +32,6 @@
         <el-table-column prop="role_name" label="角色" width="120"></el-table-column>
         <el-table-column prop="email" label="邮箱" width="160"></el-table-column>
         <el-table-column prop="mg_state" label="状态" width="60">
-          <!-- <span slot-scope="info"> {{info.row}}</span> -->
           <el-switch
             v-model="info.row.mg_state"
             slot-scope="info"
@@ -54,7 +53,12 @@
               @click="delUser(info.row.id)"
             ></el-button>
             <el-tooltip content="分配角色" placement="top" :enterable="false">
-              <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+              <el-button
+                type="warning"
+                icon="el-icon-setting"
+                size="mini"
+                @click="assignRoleDialog(info.row.id)"
+              ></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -96,7 +100,7 @@
         </div>
       </el-dialog>
 
-      <el-dialog title="编辑用户" :visible.sync="editFormVisible" width="50%">
+      <el-dialog title="编辑用户" :visible.sync="editFormVisible" width="50%" @close="closeEditDialog">
         <el-form
           ref="editFormRef"
           :model="editForm"
@@ -118,6 +122,36 @@
           <el-button type="primary" @click="editUser">确 定</el-button>
         </div>
       </el-dialog>
+
+      <el-dialog
+        title="用户分配角色"
+        :visible.sync="assignFormVisible"
+        width="50%"
+        @close="closeAssignDialog"
+      >
+        <el-form
+          ref="assignFormRef"
+          :model="assignForm"
+          :rules="assignFormRules"
+          @keyup.enter.native="assignUser"
+        >
+          <el-form-item label="当前用户" label-width="120px">{{assignForm.username}}</el-form-item>
+          <el-form-item label="分配的新角色" label-width="120px" prop="rid">
+            <el-select v-model="assignForm.rid" placeholder="请选择">
+              <el-option
+                v-for="item in roleInfos"
+                :key="item.id"
+                :label="item.roleName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="assignFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="assignUser">确 定</el-button>
+        </div>
+      </el-dialog>
     </el-card>
   </div>
 </template>
@@ -128,7 +162,54 @@ export default {
     this.getUserInfos()
   },
   methods: {
-    //修改用户
+    // 分配角色
+    // 显示弹框
+    async assignRoleDialog(id) {
+      this.assignFormVisible = true
+      // 获取当前角色信息
+      const { data: res } = await this.$http.get('users/' + id)
+      if (res.meta.status !== 200) {
+        return this.$message.error(res.meta.msg)
+      }
+      this.assignForm = res.data
+
+      // 超级管理员rid为0, 默认选项placeholder
+      if (this.assignForm.rid === 0) {
+        this.assignForm.rid = ''
+      }
+
+      // 获取角色列表
+      const { data: res2 } = await this.$http.get('roles')
+      if (res2.meta.status !== 200) {
+        return this.$message.error(res2.meta.msg)
+      }
+      this.roleInfos = res2.data
+    },
+    // 关闭弹框,重置表单
+    closeAssignDialog() {
+      this.$refs.assignFormRef.resetFields()
+    },
+    // 分配角色提交数据
+    assignUser() {
+      this.$refs.assignFormRef.validate(async valid => {
+        if (valid) {
+          const { data: res } = await this.$http.put(
+            'users/' + this.assignForm.id + '/role',
+            this.assignForm
+          )
+          if (res.meta.status !== 200) {
+            return this.$message.error(res.meta.msg)
+          }
+          this.assignFormVisible = false
+          this.$message.success(res.meta.msg)
+          this.getUserInfos()
+        }
+      })
+    },
+    // 修改用户
+    closeEditDialog() {
+      this.$refs.editFormRef.resetFields()
+    },
     editUser() {
       this.$refs.editFormRef.validate(async valid => {
         if (valid) {
@@ -167,6 +248,10 @@ export default {
           if (res.meta.status !== 200) {
             return this.$message.error(res.meta.msg)
           }
+          // 当前页码只有1条数据时，删除后重新加载到前一页，除首页外
+          if (this.queryParams.pagenum && this.userLists.length === 1) {
+            this.queryParams.pagenum--
+          }
           this.$message.success(res.meta.msg)
           this.getUserInfos()
         })
@@ -194,7 +279,6 @@ export default {
     async changeState(uId, state) {
       // console.log(uId, state)
       const { data: res } = await this.$http.put(`users/${uId}/state/${state}`)
-      console.log(res)
       if (res.meta.status !== 200) {
         return this.$message.error(res.meta.msg)
       }
@@ -295,6 +379,18 @@ export default {
           { validator: checkMoblie, trigger: 'blur' }
         ]
         // email: [{ validator: checkEmail, trigger: 'blur' }]
+      },
+
+      // 分配角色相关数据
+      assignFormVisible: false,
+      assignForm: {
+        id: '',
+        username: '',
+        rid: ''
+      },
+      roleInfos: [],
+      assignFormRules: {
+        rid: [{required: true, message: '此为必选项', trigger: 'change'}]
       }
     }
   }
