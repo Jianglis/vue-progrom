@@ -238,7 +238,7 @@ export default {
 
     // 删除用户
     delUser(id) {
-      this.$confirm('确定删除该用户吗?', '提示', {
+      this.$confirm('确定删除该用户吗?', '删除用户', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -249,7 +249,7 @@ export default {
             return this.$message.error(res.meta.msg)
           }
           // 当前页码只有1条数据时，删除后重新加载到前一页，除首页外
-          if (this.queryParams.pagenum && this.userLists.length === 1) {
+          if (this.queryParams.pagenum > 1 && this.userLists.length === 1) {
             this.queryParams.pagenum--
           }
           this.$message.success(res.meta.msg)
