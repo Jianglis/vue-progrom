@@ -4,9 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>vue-shop-pro</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.bootcss.com/nprogress/0.2.0/nprogress.min.css"
+    />
+    <script src="https://cdn.bootcss.com/nprogress/0.2.0/nprogress.min.js"></script>
   </head>
   <body>
     <div id="app"></div>
     <!-- built files will be auto injected -->
+    <script>
+      NProgress.start()
+      window.onload = function () {
+        NProgress.done()
+      }
+    </script>
   </body>
 </html>

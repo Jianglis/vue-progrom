@@ -8,6 +8,7 @@ import Rights from '@/components/Rights'
 import Role from '@/components/Role'
 import Cat from '@/components/Cat'
 import Goods from '@/components/Goods'
+import GoodsAdd from '@/components/GoodsAdd'
 import Param from '@/components/Param'
 import Order from '@/components/Order'
 import Report from '@/components/Report'
@@ -33,6 +34,7 @@ var router = new Router({
         { path: '/roles', component: Role },
         { path: '/categories', component: Cat },
         { path: '/goods', component: Goods },
+        { path: '/goodsadd', component: GoodsAdd },
         { path: '/params', component: Param },
         { path: '/orders', component: Order },
         { path: '/reports', component: Report }
